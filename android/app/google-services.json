@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "642968386376",
+    "project_id": "app-unialfa-50f41",
+    "storage_bucket": "app-unialfa-50f41.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:642968386376:android:b0941bff15d0e9bc4bd17d",
+        "android_client_info": {
+          "package_name": "com.example.app_unialfa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSJy74tmbJmeXPyWv9QkIQ45UIBWkLZqM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
