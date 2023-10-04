@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:app_unialfa/screens/home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 late Size mq;
 
@@ -21,6 +25,26 @@ class _LoginScreenState extends State<LoginScreen> {
         _isAnimate = true;
       });
     });
+  }
+
+  _handleGoogleBtnClick() {
+    _signInWithGoogle().then((user) {
+
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+    });
+  }
+
+  Future<UserCredential> _signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken, idToken: googleAuth?.idToken);
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   @override
@@ -51,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: StadiumBorder(),
                       elevation: 1),
                   onPressed: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+                    _handleGoogleBtnClick();
                   },
                   icon: Image.asset(
                     'images/google.png',

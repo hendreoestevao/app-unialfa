@@ -1,11 +1,20 @@
+import 'package:app_unialfa/screens/auth/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:app_unialfa/screens/auth/login_screen.dart';
- import 'package:firebase_core/firebase_core.dart'; // 
- import 'firebase_options.dart'; // Generated file
+import 'package:flutter/services.dart';
+import 'firebase_options.dart'; // Generated file
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+      .then((value) {
+    _initializeFirebase();
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -13,8 +22,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
         title: 'UniAlfa',
         theme: ThemeData(
@@ -27,13 +34,13 @@ class MyApp extends StatelessWidget {
                     fontWeight: FontWeight.normal,
                     fontSize: 19,
                     backgroundColor: Colors.white))),
-        home: LoginScreen(),
+        home: SplashScreen(),
         debugShowCheckedModeBanner: false);
   }
 }
 
 _initializeFirebase() async {
-await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-);
+  );
 }

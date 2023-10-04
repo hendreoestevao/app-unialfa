@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '642968386376',
     projectId: 'app-unialfa-50f41',
     storageBucket: 'app-unialfa-50f41.appspot.com',
+    androidClientId: '642968386376-e04dfe0mepbt4c79vs44bo0323cmkbu1.apps.googleusercontent.com',
+    iosClientId: '642968386376-7uujo89rfnovlpr28n6tjhurh7oi9dp5.apps.googleusercontent.com',
     iosBundleId: 'com.example.appUnialfa',
   );
 }
