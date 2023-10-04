@@ -5,6 +5,7 @@ import 'package:app_unialfa/screens/auth/login_screen.dart';
 import 'package:flutter/services.dart';
 import 'firebase_options.dart'; // Generated file
 
+late Size mq;
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
