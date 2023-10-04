@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:app_unialfa/Widgets/chat_user_card.dart';
 import 'package:app_unialfa/api/apis.dart';
+import 'package:app_unialfa/models/chat_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<ChatUser> list = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,12 +39,38 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Icon(Icons.add_comment_rounded),
         ),
       ),
-      body: ListView.builder(
-          itemCount: 16,
-          padding: EdgeInsets.only(top: 5),
-          physics: BouncingScrollPhysics(),
-          itemBuilder: (context, index) {
-            return ChatUserCard();
+      body: StreamBuilder(
+          stream: APIs.firestore.collection('users').snapshots(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+              case ConnectionState.none:
+                return const Center(child: CircularProgressIndicator());
+
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.hasData) {
+                  final data = snapshot.data?.docs;
+                  list =
+                      data?.map((e) => ChatUser.fromJson(e.data())).toList() ??
+                          [];
+                }
+
+                if (list.isNotEmpty) {
+                  return ListView.builder(
+                      itemCount: list.length,
+                      padding: EdgeInsets.only(top: 5),
+                      physics: BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return ChatUserCard(
+                          user: list[index],
+                        );
+                        // return Text('Name: ${list[index]}');
+                      });
+                } else {
+                  return Center(child: Text('Nenhum Usuario Encontrado',style: TextStyle(fontSize: 20),));
+                }
+            }
           }),
     );
   }
