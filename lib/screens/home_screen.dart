@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:app_unialfa/Widgets/chat_user_card.dart';
 import 'package:app_unialfa/api/apis.dart';
 import 'package:app_unialfa/models/chat_user.dart';
+import 'package:app_unialfa/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<ChatUser> list = [];
+
+  @override
+  void initState() {
+    super.initState();
+    APIs.getSelfInfo();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +34,16 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('UniAlfa'),
         actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.search)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.more_vert))
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ProfileScreen(
+                              user: APIs.me,
+                            )));
+              },
+              icon: Icon(Icons.more_vert))
         ],
       ),
       floatingActionButton: Padding(
@@ -40,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: StreamBuilder(
-          stream: APIs.firestore.collection('users').snapshots(),
+          stream: APIs.getAllUsers(),
           builder: (context, snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.waiting:
@@ -68,7 +85,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         // return Text('Name: ${list[index]}');
                       });
                 } else {
-                  return Center(child: Text('Nenhum Usuario Encontrado',style: TextStyle(fontSize: 20),));
+                  return Center(
+                      child: Text(
+                    'Nenhum Usuario Encontrado',
+                    style: TextStyle(fontSize: 20),
+                  ));
                 }
             }
           }),
