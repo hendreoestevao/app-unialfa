@@ -62,25 +62,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     SizedBox(
-                      width: 10,
                       height: 20,
                     ),
                     Stack(
                       children: [
                         _image != null
                             ? ClipRRect(
-                                borderRadius: BorderRadius.circular(80),
+                                borderRadius: BorderRadius.circular(5),
                                 child: Image.file(
                                   File(_image!),
-                                  height: 170,
-                                  fit: BoxFit.cover,
+                                  height: 300,
+                                  width: 3000,
+                                  fit: BoxFit.contain,
                                 ),
                               )
                             : ClipRRect(
-                                borderRadius: BorderRadius.circular(80),
+                                borderRadius: BorderRadius.circular(5),
                                 child: CachedNetworkImage(
-                                  height: 170,
-                                  fit: BoxFit.cover,
+                                  height: 300,
+                                  width: 3000,
+                                  fit: BoxFit.contain,
                                   imageUrl: widget.user.image,
                                   errorWidget: (context, url, error) =>
                                       const CircleAvatar(
@@ -214,16 +215,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: CircleBorder()),
                       onPressed: () async {
                         final ImagePicker picker = ImagePicker();
-                        final XFile? image =
-                            await picker.pickImage(source: ImageSource.gallery);
+                        final XFile? image = await picker.pickImage(
+                            source: ImageSource.gallery, imageQuality: 80);
                         if (image != null) {
                           print(
                               'Imagemmm ${image.path} -- Tipo: ${image.mimeType}');
                           setState(() {
                             _image = image.path;
                           });
+                          APIs.updateProfilePicture(File(_image!));
+                          Navigator.pop(context);
                         }
-                        Navigator.pop(context);
                       },
                       child: Image.asset(
                         'images/addimage.png',
@@ -238,16 +240,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: CircleBorder()),
                       onPressed: () async {
                         final ImagePicker picker = ImagePicker();
-                        final XFile? image =
-                            await picker.pickImage(source: ImageSource.camera);
+                        final XFile? image = await picker.pickImage(
+                            source: ImageSource.camera, imageQuality: 80);
                         if (image != null) {
-                          print(
-                              'Imagemmm ${image.path}');
+                          print('Imagemmm ${image.path}');
                           setState(() {
                             _image = image.path;
                           });
+                          APIs.updateProfilePicture(File(_image!));
+                          Navigator.pop(context);
                         }
-                        Navigator.pop(context);
                       },
                       child: Image.asset(
                         'images/picturephoto.png',
