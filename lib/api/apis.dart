@@ -94,14 +94,15 @@ class APIs {
 
 // ...
 
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser chatUser, String msg, Type type) async {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final Message message = Message(
       toId: chatUser.id,
       msg: msg,
       read: '',
-      type: Type.text,
+      type: type,
       fromId: user.uid,
       sent: time,
     );
@@ -118,11 +119,26 @@ class APIs {
         .update({'read': DateTime.now().microsecondsSinceEpoch.toString()});
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage( ChatUser user) {
-        return firestore
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
+      ChatUser user) {
+    return firestore
         .collection('chats/${getConversationID(user.id)}/messages/')
-       .orderBy('sent', descending: true)
+        .orderBy('sent', descending: true)
         .limit(1)
         .snapshots();
+  }
+
+  static Future<void> sendChatImage(ChatUser chatUser, File file) async {
+    final ext = file.path.split('').last;
+    print('Extension: ' + ext);
+    final ref = storage.ref().child(
+        'images/${getConversationID(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+    await ref
+        .putFile(file, SettableMetadata(contentType: 'image/$ext'))
+        .then((p0) {
+      print('Data transferencia: ${p0.bytesTransferred / 1000} kb');
+    });
+    final imageUrl = await ref.getDownloadURL();
+    await sendMessage(chatUser, imageUrl, Type.image);
   }
 }

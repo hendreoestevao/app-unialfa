@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:app_unialfa/Widgets/message_card.dart';
 import 'package:app_unialfa/models/message.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../api/apis.dart';
 import '../models/chat_user.dart';
@@ -22,62 +25,91 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _list = [];
   final _textController = TextEditingController();
 
+  bool _showEmoji = false;
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          flexibleSpace: _appBar(),
-          backgroundColor: Colors.white,
-        ),
-        backgroundColor: Color.fromARGB(255, 234, 248, 255),
-        body: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder(
-                  stream: APIs.getAllMessages(widget.user),
-                  builder: (context, snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.waiting:
-                      case ConnectionState.none:
-                        return const SizedBox();
-
-                      case ConnectionState.active:
-                      case ConnectionState.done:
-                        // if (snapshot.hasData) {
-                        final data = snapshot.data?.docs;
-                        // print('Hendreooooo:  ${jsonEncode(data![0].data())}');
-                        _list = data
-                                ?.map((e) => Message.fromJson(e.data()))
-                                .toList() ??
-                            [];
-
-                        if (_list.isNotEmpty) {
-                          return ListView.builder(
-                            reverse:
-                                false, // Exibir as mensagens mais recentes no topo
-                            itemCount: _list.length,
-                            padding: EdgeInsets.only(bottom: 5),
-                            physics: BouncingScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return MessageCard(
-                                message: _list[index],
-                              );
-                            },
-                          );
-                        } else {
-                          return Center(
-                              child: Text(
-                            'Diz olá',
-                            style: TextStyle(fontSize: 20),
-                          ));
-                        }
-                    }
-                  }),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SafeArea(
+        child: WillPopScope(
+          onWillPop: () {
+            if (_showEmoji) {
+              setState(() {
+                _showEmoji = !_showEmoji;
+              });
+              return Future.value(false);
+            } else {
+              return Future.value(true);
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              flexibleSpace: _appBar(),
+              backgroundColor: Colors.white,
             ),
-            _chatInput()
-          ],
+            backgroundColor: Color.fromARGB(255, 234, 248, 255),
+            body: Column(
+              children: [
+                Expanded(
+                  child: StreamBuilder(
+                      stream: APIs.getAllMessages(widget.user),
+                      builder: (context, snapshot) {
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.waiting:
+                          case ConnectionState.none:
+                            return const SizedBox();
+
+                          case ConnectionState.active:
+                          case ConnectionState.done:
+                            // if (snapshot.hasData) {
+                            final data = snapshot.data?.docs;
+                            // print('Hendreooooo:  ${jsonEncode(data![0].data())}');
+                            _list = data
+                                    ?.map((e) => Message.fromJson(e.data()))
+                                    .toList() ??
+                                [];
+
+                            if (_list.isNotEmpty) {
+                              return ListView.builder(
+                                reverse:
+                                    false, // Exibir as mensagens mais recentes no topo
+                                itemCount: _list.length,
+                                padding: EdgeInsets.only(bottom: 5),
+                                physics: BouncingScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  return MessageCard(
+                                    message: _list[index],
+                                  );
+                                },
+                              );
+                            } else {
+                              return Center(
+                                  child: Text(
+                                'Diz olá',
+                                style: TextStyle(fontSize: 20),
+                              ));
+                            }
+                        }
+                      }),
+                ),
+                _chatInput(),
+                if (_showEmoji)
+                  SizedBox(
+                    height: 300,
+                    child: EmojiPicker(
+                      textEditingController: _textController,
+                      config: Config(
+                        bgColor: Colors.white,
+                        columns: 8,
+                        emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -150,7 +182,13 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      onTap:
+                      () => FocusScope.of(context).unfocus();
+                      setState(() {
+                        _showEmoji = !_showEmoji;
+                      });
+                    },
                     icon: Icon(
                       Icons.emoji_emotions,
                       color: Colors.blueAccent,
@@ -162,6 +200,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         controller: _textController,
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
+                        onTap: () {
+                          if (_showEmoji)
+                            setState(() {
+                              _showEmoji = !_showEmoji;
+                            });
+                        },
                         decoration: InputDecoration(
                           hintText: 'digite algo...',
                           hintStyle: TextStyle(color: Colors.blueAccent),
@@ -176,7 +220,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera, imageQuality: 70);
+                      if (image != null) {
+                        print(
+                            'Imagemmm ${image.path} -- Tipo: ${image.mimeType}');
+                       await APIs.sendChatImage(widget.user, File(image.path));
+                      }
+                    },
                     icon: Icon(
                       Icons.camera_alt_rounded,
                       color: Colors.blueAccent,
@@ -192,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
           MaterialButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
-                APIs.sendMessage(widget.user, _textController.text);
+                APIs.sendMessage(widget.user, _textController.text, Type.text);
                 _textController.text = '';
               }
             },
