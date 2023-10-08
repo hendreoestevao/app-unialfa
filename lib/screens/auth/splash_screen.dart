@@ -22,11 +22,12 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(Duration(seconds: 3), () {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(systemNavigationBarColor: Colors.white));
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.white,
+          statusBarColor: Colors.white));
 
       if (APIs.auth.currentUser != null) {
-        print('\nUser: ${APIs.auth.currentUser }');
+        print('\nUser: ${APIs.auth.currentUser}');
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => HomeScreen()));
       } else {

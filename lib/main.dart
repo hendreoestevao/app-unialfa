@@ -7,6 +7,7 @@ import 'firebase_options.dart'; // Generated file
 
 late Size mq;
 void main() {
+  
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
@@ -14,6 +15,7 @@ void main() {
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) {
     _initializeFirebase();
+
     runApp(const MyApp());
   });
 }
