@@ -26,6 +26,33 @@ class MyDateUtil {
     return '${sent.day} ${_getMonth(sent)}';
   }
 
+  static String getLastActiveTime(
+      {required BuildContext context, required String lastActive}) {
+    final int i = int.tryParse(lastActive) ?? -1;
+
+    if (i == -1) return 'Ultima hora vista não disponivel';
+
+    DateTime time = DateTime.fromMillisecondsSinceEpoch(i);
+    time = time.subtract(Duration(hours: 3));
+    DateTime now = DateTime.now();
+    now = now.subtract(Duration(hours: 3));
+
+
+    String formmattedTime = TimeOfDay.fromDateTime(time).format(context);
+    if (time.day == now.day &&
+        time.month == now.month &&
+        time.year == now.year) {
+      return 'Ultima hora vista $formmattedTime';
+    }
+
+    if ((now.difference(time).inHours / 24).round() == 1) {
+      return 'Visto ontem as $formmattedTime';
+    }
+
+    String month = _getMonth(time);
+    return 'Ultima hora online ${time.day} $month $formmattedTime';
+  }
+
   static String _getMonth(DateTime date) {
     switch (date.month) {
       case 1:
