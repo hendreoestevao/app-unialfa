@@ -1,3 +1,4 @@
+import 'package:app_unialfa/Widgets/dialogs/profile_dialog.dart';
 import 'package:app_unialfa/api/apis.dart';
 import 'package:app_unialfa/helper/my_date_util.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,23 +47,33 @@ class _nameState extends State<ChatUserCard> {
                   // leading: const CircleAvatar(
                   // child: Icon(CupertinoIcons.person),
                   //),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(70),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.user.image,
-                      // placeholder: (context, url) => CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => const CircleAvatar(
-                        child: Icon(CupertinoIcons.person),
+                  leading: InkWell(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (_) => ProfileDialog(
+                                user: widget.user,
+                              ));
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(70),
+                      child: CachedNetworkImage(
+                        imageUrl: widget.user.image,
+                        // placeholder: (context, url) => CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const CircleAvatar(
+                          child: Icon(CupertinoIcons.person),
+                        ),
                       ),
                     ),
                   ),
                   title: Text(widget.user.name),
                   subtitle: Text(
-                    _message != null ? 
-                    _message!.type == Type.image ? 'imagem' :
-
-                    _message!.msg 
-                    : widget.user.about,
+                    _message != null
+                        ? _message!.type == Type.image
+                            ? 'imagem'
+                            : _message!.msg
+                        : widget.user.about,
                     maxLines: 1,
                   ),
                   trailing: _message == null
@@ -77,7 +88,10 @@ class _nameState extends State<ChatUserCard> {
                                   borderRadius: BorderRadius.circular(10)),
                             )
                           : Text(
-                              MyDateUtil.getLastMessageTime(context: context, time: _message!.sent,),
+                              MyDateUtil.getLastMessageTime(
+                                context: context,
+                                time: _message!.sent,
+                              ),
                               style: TextStyle(color: Colors.black54),
                             ),
                   // trailing: Text(

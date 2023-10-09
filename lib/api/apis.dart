@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_unialfa/models/chat_user.dart';
 import 'package:app_unialfa/models/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart';
 
 class APIs {
   static FirebaseAuth auth = FirebaseAuth.instance;
@@ -16,10 +19,63 @@ class APIs {
   static late ChatUser me;
 
   static User get user => auth.currentUser!;
+
+  static FirebaseMessaging fMessaging = FirebaseMessaging.instance;
+
+  static Future<void> getFirebaseMessagingToken() async {
+    await fMessaging.requestPermission();
+
+    await fMessaging.getToken().then((t) {
+      if (t != null) {
+        me.pushToken = t;
+        print('Push Token: $t');
+      }
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('${message.data}');
+
+      if (message.notification != null) {
+        print('${message.notification}');
+      }
+    });
+  }
+
+  static Future<void> sendPushNotification(
+      ChatUser chatUser, String msg) async {
+    try {
+      final body = {
+        "to": chatUser.pushToken,
+        "notification": {
+          "title": chatUser.name,
+          "body": msg,
+          "android_channel_id": "UniAlfa"
+        },
+        "data": {
+          "some_data": "User ID: ${me.id}",
+        }
+      };
+
+      var res = await post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader:
+                'key=AAAAlbPm-0g:APA91bESKnjWYzp4bqz8GPzwJXPrf95PzbqXdHUwsnppp4ktoo5Dtty92006VhFq7Yg4-uDDO_JEu9OM-SThGJA_cPcOlu2NagOld20EVeXKuPzn4qeqQ_Q6-B9CDqewocQLI5drswor'
+          },
+          body: jsonEncode(body));
+      print('Response status: ${res.statusCode}');
+      print('Response body: ${res.body}');
+    } catch (e) {
+      print('Response error: $e');
+    }
+  }
+
   static Future<void> getSelfInfo() async {
     await firestore.collection('users').doc(user.uid).get().then((user) async {
       if (user.exists) {
         me = ChatUser.fromJson(user.data()!);
+        await getFirebaseMessagingToken();
+        APIs.updateActiveStatus(true);
         print('Minha data : ${user.data()}');
       } else {
         await createUser().then((value) => getSelfInfo());
@@ -85,14 +141,16 @@ class APIs {
       ChatUser chatUser) {
     return firestore
         .collection('users')
-        .where('id', isNotEqualTo: chatUser.id)
+        .where('id', isEqualTo: chatUser.id)
         .snapshots();
   }
 
+  // update online or last active status of user
   static Future<void> updateActiveStatus(bool isOnline) async {
     firestore.collection('users').doc(user.uid).update({
       'is_online': isOnline,
-      'last_active': DateTime.now().millisecondsSinceEpoch.toString()
+      'last_active': DateTime.now().millisecondsSinceEpoch.toString(),
+      'push_token': me.pushToken,
     });
   }
 
@@ -125,7 +183,8 @@ class APIs {
     final ref = firestore
         .collection('chats/${getConversationID(chatUser.id)}/messages/');
 
-    await ref.doc(time).set(message.toJson());
+    await ref.doc(time).set(message.toJson()).then((value) =>
+        sendPushNotification(chatUser, type == Type.text ? msg : 'image'));
   }
 
   static Future<void> updateMessageReadStatus(Message message) async {

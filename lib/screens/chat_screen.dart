@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_unialfa/Widgets/message_card.dart';
 import 'package:app_unialfa/helper/my_date_util.dart';
 import 'package:app_unialfa/models/message.dart';
+import 'package:app_unialfa/screens/view_profile_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
@@ -126,11 +127,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _appBar() {
     return InkWell(
-        onTap: () => Navigator.pop(context),
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ViewProfileScreen(user: widget.user)));
+        },
         child: StreamBuilder(
             stream: APIs.getUserInfo(widget.user),
             builder: (context, snapshot) {
-              final data = snapshot.data?.docs;
+ final data = snapshot.data?.docs;
               final list =
                   data?.map((e) => ChatUser.fromJson(e.data())).toList() ?? [];
               return Row(
@@ -173,9 +179,15 @@ class _ChatScreenState extends State<ChatScreen> {
                         height: 2,
                       ),
                       Text(
-                        list.isNotEmpty ?
-                        list[0].isOnline ? 'Online' : MyDateUtil.getLastActiveTime(context: context, lastActive: list[0].lastActive)
-                            : MyDateUtil.getLastActiveTime(context: context, lastActive: widget.user.lastActive),
+                       list.isNotEmpty
+                              ? list[0].isOnline
+                                  ? 'Online'
+                                  : MyDateUtil.getLastActiveTime(
+                                      context: context,
+                                      lastActive: list[0].lastActive)
+                              : MyDateUtil.getLastActiveTime(
+                                  context: context,
+                                  lastActive: widget.user.lastActive),
                         style: TextStyle(
                             fontSize: 13,
                             color: Colors.black54,

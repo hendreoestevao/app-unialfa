@@ -40,11 +40,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: Colors.red,
               onPressed: () async {
                 Dialogs.showProgressBar(context);
+
+                await APIs.updateActiveStatus(false);
+
                 await APIs.auth.signOut().then((value) async {
                   await GoogleSignIn().signOut().then((value) {
                     Navigator.pop(context);
 
                     Navigator.pop(context);
+
+                    APIs.auth = FirebaseAuth.instance;
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (_) => LoginScreen()));
                   });

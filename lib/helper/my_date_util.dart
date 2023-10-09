@@ -5,17 +5,15 @@ class MyDateUtil {
       {required BuildContext context, required String time}) {
     DateTime date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
 
-    date = date.subtract(Duration(hours: 3));
-
     return TimeOfDay.fromDateTime(date).format(context);
   }
 
   static String getLastMessageTime(
-      {required BuildContext context, required String time}) {
+      {required BuildContext context,
+      required String time,
+      bool showYear = false}) {
     DateTime sent = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
-    sent = sent.subtract(Duration(hours: 3));
     DateTime now = DateTime.now();
-    now = now.subtract(Duration(hours: 3));
 
     if (now.day == sent.day &&
         now.month == sent.month &&
@@ -23,7 +21,9 @@ class MyDateUtil {
       return TimeOfDay.fromDateTime(sent).format(context);
     }
 
-    return '${sent.day} ${_getMonth(sent)}';
+    return showYear
+        ? '${sent.day} ${_getMonth(sent)} ${sent.year}'
+        : '${sent.day} ${_getMonth(sent)}';
   }
 
   static String getLastActiveTime(
@@ -33,10 +33,8 @@ class MyDateUtil {
     if (i == -1) return 'Ultima hora vista não disponivel';
 
     DateTime time = DateTime.fromMillisecondsSinceEpoch(i);
-    time = time.subtract(Duration(hours: 3));
-    DateTime now = DateTime.now();
-    now = now.subtract(Duration(hours: 3));
 
+    DateTime now = DateTime.now();
 
     String formmattedTime = TimeOfDay.fromDateTime(time).format(context);
     if (time.day == now.day &&
