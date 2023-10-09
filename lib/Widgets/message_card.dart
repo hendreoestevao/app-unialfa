@@ -143,7 +143,7 @@ class _MessageCardState extends State<MessageCard> {
 
   void _showBottomSheet(bool isMe) {
     if (!mounted) {
-      return; // Verifique se o widget ainda está montado
+      Text('data');
     }
 
     showModalBottomSheet(
