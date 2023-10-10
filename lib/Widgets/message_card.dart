@@ -196,7 +196,8 @@ class _MessageCardState extends State<MessageCard> {
                     onTap: () async {
                       try {
                         print('Image Url: ${widget.message.msg}');
-                        await GallerySaver.saveImage(widget.message.msg +'.jpg',
+                        await GallerySaver.saveImage(
+                                widget.message.msg + '.jpg',
                                 albumName: 'UniAlfa')
                             .then((success) {
                           //for hiding bottom sheet
@@ -209,8 +210,7 @@ class _MessageCardState extends State<MessageCard> {
                       } catch (e) {
                         print('ErrorWhileSavingImg: $e');
                       }
-                    }
-      ),
+                    }),
             if (isMe)
               Divider(
                 color: Colors.black54,
@@ -225,7 +225,10 @@ class _MessageCardState extends State<MessageCard> {
                   size: 26,
                 ),
                 name: 'Editar Mensagem',
-                onTap: () {},
+                onTap: () {
+                  Navigator.pop(context);
+                  _showMessageUpdateDialog();
+                },
               ),
             if (isMe)
               _OptionItem(
@@ -273,6 +276,58 @@ class _MessageCardState extends State<MessageCard> {
         );
       },
     );
+  }
+
+  void _showMessageUpdateDialog() {
+    String updatedMSG = widget.message.msg;
+
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              contentPadding:
+                  EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.message,
+                    color: Colors.blue,
+                    size: 28,
+                  ),
+                  Text(' Editar Mensagem')
+                ],
+              ),
+              content: TextFormField(
+                initialValue: updatedMSG,
+                maxLines: null,
+                onChanged: (value) => updatedMSG = value,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15))),
+              ),
+              actions: [
+                MaterialButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
+                  ),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    APIs.updateMessage(widget.message, updatedMSG);
+                  },
+                  child: Text(
+                    'Editar',
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
+                  ),
+                )
+              ],
+            ));
   }
 }
 
