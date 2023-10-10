@@ -3,7 +3,11 @@ import 'package:app_unialfa/helper/my_date_util.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:gallery_saver/gallery_saver.dart';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:gallery_saver/gallery_saver.dart';
 import '../api/apis.dart';
 import '../helper/dialogs.dart';
 import '../models/message.dart';
@@ -142,109 +146,133 @@ class _MessageCardState extends State<MessageCard> {
   }
 
   void _showBottomSheet(bool isMe) {
-    if (!mounted) {
-      Text('data');
-    }
-
     showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20), topRight: Radius.circular(20))),
-        builder: (_) {
-          return ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.only(top: 20, bottom: 30),
-            children: [
-              Container(
-                height: 4,
-                margin: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
-                decoration: BoxDecoration(
-                    color: Colors.grey, borderRadius: BorderRadius.circular(8)),
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) {
+        return ListView(
+          shrinkWrap: true,
+          padding: EdgeInsets.only(top: 20, bottom: 30),
+          children: [
+            Container(
+              height: 4,
+              margin: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(8),
               ),
-              widget.message.type == Type.text
-                  ? _OptionItem(
-                      icon: Icon(
-                        Icons.copy_all_rounded,
-                        color: Colors.blue,
-                        size: 26,
-                      ),
-                      name: 'Copiar Mensagem',
-                      onTap: () async {
-                        await Clipboard.setData(
-                                ClipboardData(text: widget.message.msg))
-                            .then((value) {
-                          if (mounted) {
-                            Navigator.pop(context);
-                            Dialogs.showSnackBar(context, 'Mensagem Copiada');
-                          }
-                        });
-                      })
-                  : _OptionItem(
-                      icon: Icon(
-                        Icons.download_rounded,
-                        color: Colors.blue,
-                        size: 26,
-                      ),
-                      name: 'Salvar Imagem',
-                      onTap: () {}),
-              if (isMe)
-                Divider(
-                  color: Colors.black54,
-                  endIndent: 20,
-                  indent: 20,
-                ),
-              if (widget.message.type == Type.text && isMe)
-                _OptionItem(
+            ),
+            widget.message.type == Type.text
+                ? _OptionItem(
                     icon: Icon(
-                      Icons.edit,
+                      Icons.copy_all_rounded,
                       color: Colors.blue,
                       size: 26,
                     ),
-                    name: 'Editar Mensagem',
-                    onTap: () {}),
-              if (isMe)
-                _OptionItem(
-                    icon: Icon(
-                      Icons.delete_forever,
-                      color: Colors.red,
-                      size: 26,
-                    ),
-                    name: 'Deletar Mensagem',
+                    name: 'Copiar Mensagem',
                     onTap: () async {
-                      await APIs.deleteMessage(widget.message).then((value) {
+                      await Clipboard.setData(
+                        ClipboardData(text: widget.message.msg),
+                      ).then((value) {
                         if (mounted) {
                           Navigator.pop(context);
+                          Dialogs.showSnackBar(context, 'Mensagem Copiada');
                         }
                       });
-                    }),
+                    },
+                  )
+                : _OptionItem(
+                    icon: Icon(
+                      Icons.download_rounded,
+                      color: Colors.blue,
+                      size: 26,
+                    ),
+                    name: 'Salvar Imagem',
+                    onTap: () async {
+                      try {
+                        print('Image Url: ${widget.message.msg}');
+                        await GallerySaver.saveImage(widget.message.msg +'.jpg',
+                                albumName: 'UniAlfa')
+                            .then((success) {
+                          //for hiding bottom sheet
+                          Navigator.pop(context);
+                          if (success != null && success) {
+                            Dialogs.showSnackBar(
+                                context, 'Image Successfully Saved!');
+                          }
+                        });
+                      } catch (e) {
+                        print('ErrorWhileSavingImg: $e');
+                      }
+                    }
+      ),
+            if (isMe)
               Divider(
                 color: Colors.black54,
                 endIndent: 20,
                 indent: 20,
               ),
+            if (widget.message.type == Type.text && isMe)
               _OptionItem(
-                  icon: Icon(
-                    Icons.remove_red_eye,
-                    color: Colors.blue,
-                    size: 26,
-                  ),
-                  name:
-                      'Mensagem enviada: ${MyDateUtil.getMessageTime(context: context, time: widget.message.sent)}',
-                  onTap: () {}),
+                icon: Icon(
+                  Icons.edit,
+                  color: Colors.blue,
+                  size: 26,
+                ),
+                name: 'Editar Mensagem',
+                onTap: () {},
+              ),
+            if (isMe)
               _OptionItem(
-                  icon: Icon(
-                    Icons.remove_red_eye,
-                    color: Colors.green,
-                    size: 26,
-                  ),
-                  name: widget.message.read.isEmpty
-                      ? 'Mensagem Não Visualizada'
-                      : 'Mensagem lida: ${MyDateUtil.getMessageTime(context: context, time: widget.message.read)} ',
-                  onTap: () {})
-            ],
-          );
-        });
+                icon: Icon(
+                  Icons.delete_forever,
+                  color: Colors.red,
+                  size: 26,
+                ),
+                name: 'Deletar Mensagem',
+                onTap: () async {
+                  await APIs.deleteMessage(widget.message).then((value) {
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
+                  });
+                },
+              ),
+            Divider(
+              color: Colors.black54,
+              endIndent: 20,
+              indent: 20,
+            ),
+            _OptionItem(
+              icon: Icon(
+                Icons.remove_red_eye,
+                color: Colors.blue,
+                size: 26,
+              ),
+              name:
+                  'Mensagem enviada: ${MyDateUtil.getMessageTime(context: context, time: widget.message.sent)}',
+              onTap: () {},
+            ),
+            _OptionItem(
+              icon: Icon(
+                Icons.remove_red_eye,
+                color: Colors.green,
+                size: 26,
+              ),
+              name: widget.message.read.isEmpty
+                  ? 'Mensagem Não Visualizada'
+                  : 'Mensagem lida: ${MyDateUtil.getMessageTime(context: context, time: widget.message.read)} ',
+              onTap: () {},
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
