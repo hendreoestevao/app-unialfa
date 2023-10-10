@@ -136,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: StreamBuilder(
             stream: APIs.getUserInfo(widget.user),
             builder: (context, snapshot) {
- final data = snapshot.data?.docs;
+              final data = snapshot.data?.docs;
               final list =
                   data?.map((e) => ChatUser.fromJson(e.data())).toList() ?? [];
               return Row(
@@ -179,15 +179,15 @@ class _ChatScreenState extends State<ChatScreen> {
                         height: 2,
                       ),
                       Text(
-                       list.isNotEmpty
-                              ? list[0].isOnline
-                                  ? 'Online'
-                                  : MyDateUtil.getLastActiveTime(
-                                      context: context,
-                                      lastActive: list[0].lastActive)
-                              : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive: widget.user.lastActive),
+                        list.isNotEmpty
+                            ? list[0].isOnline
+                                ? 'Online'
+                                : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive: list[0].lastActive)
+                            : MyDateUtil.getLastActiveTime(
+                                context: context,
+                                lastActive: widget.user.lastActive),
                         style: TextStyle(
                             fontSize: 13,
                             color: Colors.black54,
@@ -295,7 +295,13 @@ class _ChatScreenState extends State<ChatScreen> {
           MaterialButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
-                APIs.sendMessage(widget.user, _textController.text, Type.text);
+                if (_list.isEmpty) {
+                  APIs.sendFirstMessage(
+                      widget.user, _textController.text, Type.text);
+                } else {
+                  APIs.sendMessage(
+                      widget.user, _textController.text, Type.text);
+                }
                 _textController.text = '';
               }
             },
